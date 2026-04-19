@@ -1,0 +1,18 @@
+.venv/
+.env
+__pycache__/
+*.pyc
+.DS_Store
+
+# Data and persisting state
+/data/
+/data/chroma/
+agent_state.db
+agent_state.db-journal
+agent_state.db-shm
+agent_state.db-wal
+/tmp/
+
+# Temporary tests or PDFs
+*.pdf
+test_collection/

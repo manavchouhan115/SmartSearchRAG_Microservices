@@ -1,0 +1,518 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: inherit; font-size: 14px; color: var(--color-text-primary); line-height: 1.6; background: transparent; }
+
+  /* NAV TABS */
+  .tabs { display: flex; gap: 4px; margin-bottom: 1.25rem; border-bottom: 1px solid var(--color-border-tertiary); padding-bottom: 0; flex-wrap: wrap; }
+  .tab { font-size: 12px; font-weight: 500; padding: 6px 14px; border-radius: 6px 6px 0 0; cursor: pointer; color: var(--color-text-secondary); background: transparent; border: none; border-bottom: 2px solid transparent; transition: all 0.15s; }
+  .tab:hover { color: var(--color-text-primary); }
+  .tab.active { color: #3C3489; border-bottom: 2px solid #7F77DD; background: #F4F3FD; }
+  .pane { display: none; padding-top: 4px; }
+  .pane.active { display: block; }
+
+  /* CARDS */
+  .card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: 10px; padding: 1rem 1.2rem; margin-bottom: 10px; }
+  .card-accent { border-left: 3px solid; border-radius: 0 10px 10px 0; }
+
+  /* TAGS */
+  .tag { display: inline-block; font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 4px; margin: 2px 3px 2px 0; }
+  .tag-ai { background: #EEEDFE; color: #3C3489; }
+  .tag-infra { background: #E1F5EE; color: #085041; }
+  .tag-api { background: #FAECE7; color: #712B13; }
+  .tag-db { background: #E6F1FB; color: #0C447C; }
+  .tag-free { background: #EAF3DE; color: #27500A; }
+
+  /* SECTION HEADINGS */
+  .sh { font-size: 15px; font-weight: 500; margin: 0 0 12px; color: var(--color-text-primary); }
+  .sh2 { font-size: 13px; font-weight: 500; margin: 0 0 6px; color: var(--color-text-primary); }
+  .muted { font-size: 12px; color: var(--color-text-secondary); }
+
+  /* ARCH LAYER */
+  .layer { display: flex; align-items: center; gap: 10px; background: var(--color-background-secondary); border-radius: 8px; padding: 10px 14px; margin-bottom: 6px; }
+  .layer-icon { width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+  .layer-title { font-size: 13px; font-weight: 500; margin: 0 0 2px; }
+  .layer-sub { font-size: 12px; color: var(--color-text-secondary); }
+  .arrow-down { text-align: center; color: var(--color-text-secondary); font-size: 14px; margin: 2px 0; }
+
+  /* AGENT CARDS */
+  .agent-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 8px; margin-bottom: 1rem; }
+  .agent-card { border: 0.5px solid var(--color-border-tertiary); border-radius: 8px; padding: 10px 12px; border-top: 3px solid; }
+  .agent-name { font-size: 13px; font-weight: 500; margin: 0 0 4px; }
+  .agent-desc { font-size: 12px; color: var(--color-text-secondary); line-height: 1.5; }
+  .agent-tools { font-size: 11px; color: var(--color-text-secondary); margin-top: 6px; font-style: italic; }
+
+  /* FLOW */
+  .flow { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; margin: 10px 0; }
+  .flow-node { font-size: 12px; font-weight: 500; padding: 5px 10px; border-radius: 6px; white-space: nowrap; }
+  .flow-arrow { color: var(--color-text-secondary); font-size: 14px; }
+
+  /* STACK TABLE */
+  .stack-row { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 0.5px solid var(--color-border-tertiary); font-size: 13px; gap: 8px; }
+  .stack-row:last-child { border-bottom: none; }
+  .stack-label { color: var(--color-text-secondary); min-width: 130px; flex-shrink: 0; }
+  .stack-val { font-weight: 500; text-align: right; }
+  .free-badge { font-size: 10px; background: #E1F5EE; color: #085041; padding: 1px 6px; border-radius: 4px; margin-left: 5px; font-weight: 500; }
+
+  /* PHASE */
+  .phase { display: flex; gap: 12px; margin-bottom: 14px; }
+  .phase-left { display: flex; flex-direction: column; align-items: center; gap: 4px; flex-shrink: 0; }
+  .phase-num { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; }
+  .week-badge { font-size: 10px; font-weight: 500; padding: 2px 6px; border-radius: 4px; white-space: nowrap; }
+  .phase-body { flex: 1; }
+  .phase-title { font-size: 14px; font-weight: 500; margin: 0 0 2px; }
+  .phase-sub { font-size: 12px; color: var(--color-text-secondary); margin: 0 0 8px; }
+  .task-list { padding-left: 16px; margin: 0 0 8px; }
+  .task-list li { font-size: 12.5px; color: var(--color-text-primary); margin-bottom: 4px; line-height: 1.5; }
+  .task-list li code { font-size: 11px; background: var(--color-background-secondary); padding: 1px 5px; border-radius: 3px; font-family: monospace; }
+  .tip { background: var(--color-background-secondary); border-left: 3px solid #1D9E75; border-radius: 0 6px 6px 0; padding: 7px 12px; font-size: 12px; color: var(--color-text-primary); }
+
+  /* CODE BLOCK */
+  pre { background: #1E1E2E; color: #CDD6F4; padding: 12px 14px; border-radius: 8px; font-size: 12px; overflow-x: auto; margin: 8px 0; font-family: 'Menlo', 'Courier New', monospace; line-height: 1.6; }
+  .kw { color: #CBA6F7; }
+  .st { color: #A6E3A1; }
+  .cm { color: #6C7086; }
+  .fn { color: #89B4FA; }
+  .nm { color: #FAB387; }
+
+  /* DIVIDER */
+  hr { border: none; border-top: 0.5px solid var(--color-border-tertiary); margin: 1.25rem 0; }
+
+  /* BUTTONS */
+  .btn { font-size: 12px; color: #185FA5; cursor: pointer; background: none; border: 0.5px solid #B5D4F4; border-radius: 6px; padding: 5px 10px; margin-top: 8px; }
+  .btn:hover { background: #E6F1FB; }
+
+  /* FILE TREE */
+  .tree { font-family: monospace; font-size: 12px; background: var(--color-background-secondary); border-radius: 8px; padding: 12px 14px; line-height: 1.9; }
+  .tree .dir { color: #89B4FA; font-weight: 500; }
+  .tree .file { color: var(--color-text-primary); }
+  .tree .comment { color: #6C7086; }
+</style>
+</head>
+<body>
+
+<div class="tabs">
+  <button class="tab active" onclick="show('overview')">Overview</button>
+  <button class="tab" onclick="show('arch')">Architecture</button>
+  <button class="tab" onclick="show('agents')">Agent Graph</button>
+  <button class="tab" onclick="show('stack')">Tech Stack</button>
+  <button class="tab" onclick="show('plan')">Build Plan</button>
+  <button class="tab" onclick="show('code')">Starter Code</button>
+</div>
+
+<!-- OVERVIEW -->
+<div id="pane-overview" class="pane active">
+  <p style="font-size:13px;color:var(--color-text-secondary);margin-bottom:14px;">SmartSearch is a multi-agent RAG platform. Upload PDFs or text — agents ingest, embed, retrieve, answer and critique — all running as Docker microservices on a local Kubernetes cluster. <strong>Cost: $0.</strong></p>
+
+  <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;">
+    <span class="tag tag-ai">LangGraph</span><span class="tag tag-ai">Multi-Agent RAG</span>
+    <span class="tag tag-ai">Agentic AI</span>
+    <span class="tag tag-infra">Docker</span><span class="tag tag-infra">minikube (K8s)</span>
+    <span class="tag tag-api">FastAPI</span><span class="tag tag-api">REST APIs</span>
+    <span class="tag tag-db">ChromaDB</span><span class="tag tag-db">PostgreSQL</span>
+    <span class="tag tag-free">$0 cost</span>
+  </div>
+
+  <div class="sh">What SmartSearch does</div>
+  <div class="flow" style="margin-bottom:14px;">
+    <div class="flow-node" style="background:#EEEDFE;color:#3C3489;">📄 Upload PDF</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node" style="background:#EEEDFE;color:#3C3489;">🔪 Ingestion Agent</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node" style="background:#E6F1FB;color:#0C447C;">🗄 ChromaDB</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node" style="background:#FAEEDA;color:#633806;">❓ Ask Question</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node" style="background:#EEEDFE;color:#3C3489;">🔍 Retriever Agent</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node" style="background:#EEEDFE;color:#3C3489;">✍️ Synthesiser Agent</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node" style="background:#EEEDFE;color:#3C3489;">🧐 Critic Agent</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node" style="background:#E1F5EE;color:#085041;">✅ Final Answer</div>
+  </div>
+
+  <div class="sh">The 5 microservices</div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px;margin-bottom:14px;">
+    <div class="card" style="text-align:center;padding:12px 8px;">
+      <div style="font-size:20px;margin-bottom:4px;">📥</div>
+      <div style="font-size:12px;font-weight:500;">Ingestion Service</div>
+      <div class="muted" style="font-size:11px;">Parses docs, chunks, embeds → ChromaDB</div>
+    </div>
+    <div class="card" style="text-align:center;padding:12px 8px;">
+      <div style="font-size:20px;margin-bottom:4px;">🗄</div>
+      <div style="font-size:12px;font-weight:500;">Vector Service</div>
+      <div class="muted" style="font-size:11px;">ChromaDB wrapper REST API</div>
+    </div>
+    <div class="card" style="text-align:center;padding:12px 8px;">
+      <div style="font-size:20px;margin-bottom:4px;">🧠</div>
+      <div style="font-size:12px;font-weight:500;">Agent Service</div>
+      <div class="muted" style="font-size:11px;">LangGraph orchestrator (4 agents)</div>
+    </div>
+    <div class="card" style="text-align:center;padding:12px 8px;">
+      <div style="font-size:20px;margin-bottom:4px;">🚪</div>
+      <div style="font-size:12px;font-weight:500;">API Gateway</div>
+      <div class="muted" style="font-size:11px;">FastAPI public REST API + auth</div>
+    </div>
+    <div class="card" style="text-align:center;padding:12px 8px;">
+      <div style="font-size:20px;margin-bottom:4px;">📊</div>
+      <div style="font-size:12px;font-weight:500;">Dashboard</div>
+      <div class="muted" style="font-size:11px;">React UI + query history</div>
+    </div>
+  </div>
+
+  <div class="tip">Each service is an independent Docker container with its own Dockerfile and FastAPI app, communicating via REST APIs. All 5 run on minikube as Kubernetes Deployments + Services.</div>
+</div>
+
+<!-- ARCHITECTURE -->
+<div id="pane-arch" class="pane">
+  <div class="sh">System Architecture — 6 layers</div>
+
+  <div class="layer"><div class="layer-icon" style="background:#EEEDFE;">👤</div><div><p class="layer-title">User Layer</p><p class="layer-sub">React dashboard — upload docs, ask questions, view answer + sources + confidence score</p></div></div>
+  <div class="arrow-down">↕</div>
+  <div class="layer"><div class="layer-icon" style="background:#FAECE7;">🚪</div><div><p class="layer-title">API Gateway (FastAPI)</p><p class="layer-sub">Single entry point. Routes <code>/ingest</code>, <code>/query</code>, <code>/status</code> endpoints. JWT auth middleware. Rate limiting.</p></div></div>
+  <div class="arrow-down">↕</div>
+  <div class="layer"><div class="layer-icon" style="background:#EEEDFE;">🧠</div><div><p class="layer-title">Agent Orchestration (LangGraph)</p><p class="layer-sub">Stateful graph: QueryAnalyser → Retriever → Synthesiser → Critic. Conditional retry loops. Postgres checkpointing.</p></div></div>
+  <div class="arrow-down">↕</div>
+  <div class="layer"><div class="layer-icon" style="background:#FAECE7;">📥</div><div><p class="layer-title">Ingestion Service (FastAPI + LangChain)</p><p class="layer-sub">PDF/TXT parser → RecursiveCharacterTextSplitter → HuggingFace embeddings → ChromaDB via Vector Service REST API</p></div></div>
+  <div class="arrow-down">↕</div>
+  <div class="layer"><div class="layer-icon" style="background:#E6F1FB;">🗄</div><div><p class="layer-title">Vector Service (ChromaDB)</p><p class="layer-sub">FastAPI wrapper over ChromaDB. Exposes <code>/collections</code>, <code>/add</code>, <code>/query</code>. Collections map to document namespaces.</p></div></div>
+  <div class="arrow-down">↕</div>
+  <div class="layer"><div class="layer-icon" style="background:#E1F5EE;">☸️</div><div><p class="layer-title">Infrastructure Layer (minikube)</p><p class="layer-sub">5 K8s Deployments + Services. Ingress controller for external access. Prometheus + Grafana for monitoring. All local.</p></div></div>
+
+  <hr>
+
+  <div class="sh">Repo structure</div>
+  <div class="tree">
+    <div><span class="dir">smartsearch/</span></div>
+    <div>&nbsp;&nbsp;<span class="dir">services/</span></div>
+    <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="dir">gateway/</span> <span class="comment"># FastAPI API gateway</span></div>
+    <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="dir">agent/</span>&nbsp;&nbsp;&nbsp; <span class="comment"># LangGraph orchestrator</span></div>
+    <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="dir">ingestion/</span> <span class="comment"># PDF parser + embedder</span></div>
+    <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="dir">vector/</span>&nbsp;&nbsp;&nbsp; <span class="comment"># ChromaDB REST wrapper</span></div>
+    <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="dir">dashboard/</span> <span class="comment"># React frontend</span></div>
+    <div>&nbsp;&nbsp;<span class="dir">k8s/</span></div>
+    <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="file">gateway-deployment.yaml</span></div>
+    <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="file">agent-deployment.yaml</span></div>
+    <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="file">ingestion-deployment.yaml</span></div>
+    <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="file">vector-deployment.yaml</span></div>
+    <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="file">dashboard-deployment.yaml</span></div>
+    <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="file">ingress.yaml</span></div>
+    <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="file">configmap.yaml</span></div>
+    <div>&nbsp;&nbsp;<span class="file">docker-compose.yml</span> <span class="comment"># local dev</span></div>
+    <div>&nbsp;&nbsp;<span class="file">README.md</span></div>
+  </div>
+</div>
+
+<!-- AGENTS -->
+<div id="pane-agents" class="pane">
+  <div class="sh">The LangGraph Agent Graph</div>
+  <p class="muted" style="margin-bottom:12px;">4 agent nodes connected in a stateful cyclic graph. The Critic can loop back to Retriever if confidence is low — this is what makes it <em>agentic</em>, not just a pipeline.</p>
+
+  <div class="flow" style="margin-bottom:16px;justify-content:center;">
+    <div class="flow-node" style="background:#F4F3FD;color:#3C3489;border:1px solid #AFA9EC;">🔍 QueryAnalyser</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node" style="background:#F4F3FD;color:#3C3489;border:1px solid #AFA9EC;">📚 Retriever</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node" style="background:#F4F3FD;color:#3C3489;border:1px solid #AFA9EC;">✍️ Synthesiser</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node" style="background:#F4F3FD;color:#3C3489;border:1px solid #AFA9EC;">🧐 Critic</div>
+  </div>
+  <div style="text-align:center;font-size:12px;color:var(--color-text-secondary);margin-bottom:16px;">↑ Critic loops back to Retriever with rewritten query if confidence &lt; 0.7 (max 3 retries)</div>
+
+  <div class="agent-grid">
+    <div class="agent-card" style="border-top-color:#7F77DD;">
+      <p class="agent-name" style="color:#3C3489;">🔍 QueryAnalyser Agent</p>
+      <p class="agent-desc">Receives raw user question. Classifies intent (factual / comparative / summarisation). Rewrites query for better semantic search. Selects which ChromaDB collection to search.</p>
+      <p class="agent-tools">Tools: LLM call, query rewriter</p>
+    </div>
+    <div class="agent-card" style="border-top-color:#EF9F27;">
+      <p class="agent-name" style="color:#633806;">📚 Retriever Agent</p>
+      <p class="agent-desc">Calls Vector Service REST API with the rewritten query. Fetches top-k chunks. Scores relevance. If top chunk score &lt; threshold, flags as "low confidence" for Critic to handle.</p>
+      <p class="agent-tools">Tools: httpx → Vector Service /query endpoint</p>
+    </div>
+    <div class="agent-card" style="border-top-color:#1D9E75;">
+      <p class="agent-name" style="color:#085041;">✍️ Synthesiser Agent</p>
+      <p class="agent-desc">Receives retrieved chunks. Calls LLM with structured prompt: "Answer the question using ONLY these sources. Cite each source." Returns answer + list of source references.</p>
+      <p class="agent-tools">Tools: LLM call (Claude / GPT-4o)</p>
+    </div>
+    <div class="agent-card" style="border-top-color:#D85A30;">
+      <p class="agent-name" style="color:#712B13;">🧐 Critic Agent</p>
+      <p class="agent-desc">Scores the answer on 3 dimensions: relevance, groundedness, completeness (0–1 each). If avg score &lt; 0.7 and retry_count &lt; 3, rewrites query and loops back to Retriever. Otherwise returns final answer.</p>
+      <p class="agent-tools">Tools: LLM call, scoring rubric</p>
+    </div>
+  </div>
+
+  <hr>
+
+  <div class="sh2">LangGraph State Schema</div>
+  <pre><span class="kw">from</span> typing <span class="kw">import</span> List, Optional, TypedDict
+
+<span class="kw">class</span> <span class="nm">SearchState</span>(TypedDict):
+    <span class="cm"># Input</span>
+    question:        str
+    collection_name: str
+
+    <span class="cm"># Agent outputs</span>
+    rewritten_query: str
+    intent:          str               <span class="cm"># factual | comparative | summary</span>
+    documents:       List[str]
+    sources:         List[str]
+    generation:      str
+    confidence:      float             <span class="cm"># 0.0 – 1.0</span>
+
+    <span class="cm"># Control flow</span>
+    retry_count:     int
+    final_answer:    Optional[str]</pre>
+  <button class="btn" onclick="sendPrompt('Write the full LangGraph agent graph code for SmartSearch with all 4 agent nodes: QueryAnalyser, Retriever, Synthesiser and Critic. Include the conditional edge logic and retry loop.')">Generate full agent code ↗</button>
+</div>
+
+<!-- STACK -->
+<div id="pane-stack" class="pane">
+  <div class="sh">Complete Tech Stack — all free</div>
+  <div class="card" style="padding:0.5rem 1rem;">
+    <div class="stack-row"><span class="stack-label">Agent framework</span><span class="stack-val">LangGraph 1.x <span class="free-badge">free</span></span></div>
+    <div class="stack-row"><span class="stack-label">LLM</span><span class="stack-val">Claude Sonnet 4.6 / GPT-4o (API — pay per use, ~cents)</span></div>
+    <div class="stack-row"><span class="stack-label">Embeddings</span><span class="stack-val">HuggingFace sentence-transformers <span class="free-badge">free, local</span></span></div>
+    <div class="stack-row"><span class="stack-label">Vector DB</span><span class="stack-val">ChromaDB (persistent) <span class="free-badge">free</span></span></div>
+    <div class="stack-row"><span class="stack-label">API framework</span><span class="stack-val">FastAPI + Pydantic + Uvicorn <span class="free-badge">free</span></span></div>
+    <div class="stack-row"><span class="stack-label">PDF parsing</span><span class="stack-val">PyMuPDF (fitz) + LangChain loaders <span class="free-badge">free</span></span></div>
+    <div class="stack-row"><span class="stack-label">Agent state store</span><span class="stack-val">PostgreSQL (Docker) + LangGraph checkpointer <span class="free-badge">free</span></span></div>
+    <div class="stack-row"><span class="stack-label">Auth</span><span class="stack-val">JWT (python-jose) + FastAPI middleware <span class="free-badge">free</span></span></div>
+    <div class="stack-row"><span class="stack-label">Containerisation</span><span class="stack-val">Docker + Docker Compose <span class="free-badge">free</span></span></div>
+    <div class="stack-row"><span class="stack-label">Kubernetes</span><span class="stack-val">minikube (local K8s cluster) <span class="free-badge">free</span></span></div>
+    <div class="stack-row"><span class="stack-label">Monitoring</span><span class="stack-val">Prometheus + Grafana (minikube addons) <span class="free-badge">free</span></span></div>
+    <div class="stack-row"><span class="stack-label">Frontend</span><span class="stack-val">React 18 + TypeScript + TailwindCSS <span class="free-badge">free</span></span></div>
+    <div class="stack-row"><span class="stack-label">CI/CD</span><span class="stack-val">GitHub Actions → minikube deploy script <span class="free-badge">free</span></span></div>
+    <div class="stack-row"><span class="stack-label">K8s packaging</span><span class="stack-val">Helm charts (optional) or plain YAML <span class="free-badge">free</span></span></div>
+  </div>
+
+  <hr>
+
+  <div class="sh2">Python dependencies (per service)</div>
+  <pre><span class="cm"># agent service</span>
+langgraph>=1.1  langchain  langchain-openai
+langchain-anthropic  httpx  pydantic  uvicorn
+
+<span class="cm"># ingestion service</span>
+langchain  PyMuPDF  sentence-transformers
+langchain-community  httpx  fastapi  uvicorn
+
+<span class="cm"># vector service</span>
+chromadb  fastapi  uvicorn  pydantic
+
+<span class="cm"># gateway</span>
+fastapi  uvicorn  python-jose  pydantic
+httpx  passlib[bcrypt]</pre>
+</div>
+
+<!-- BUILD PLAN -->
+<div id="pane-plan" class="pane">
+
+  <div class="phase">
+    <div class="phase-left">
+      <div class="phase-num" style="background:#EEEDFE;color:#3C3489;">1</div>
+      <span class="week-badge" style="background:#EEEDFE;color:#3C3489;">Week 1</span>
+    </div>
+    <div class="phase-body card" style="margin:0;">
+      <p class="phase-title">Setup + services working locally (no Docker yet)</p>
+      <p class="phase-sub">Get the core logic working as plain Python before containerising anything</p>
+      <ul class="task-list">
+        <li>Create mono-repo: <code>smartsearch/services/{gateway,agent,ingestion,vector,dashboard}/</code></li>
+        <li>Install minikube + kubectl: <code>minikube start --memory=4096 --cpus=2</code></li>
+        <li>Build <strong>Vector Service</strong>: FastAPI wrapping ChromaDB. Endpoints: <code>POST /collections</code>, <code>POST /add</code>, <code>POST /query</code></li>
+        <li>Build <strong>Ingestion Service</strong>: Accept PDF upload → PyMuPDF parse → chunk (500 tokens, 50 overlap) → HuggingFace embed → call Vector Service <code>/add</code></li>
+        <li>Test end-to-end: upload a PDF, verify chunks appear in ChromaDB via <code>/query</code></li>
+        <li>Set up PostgreSQL locally (Docker single container) + verify LangGraph can write checkpoints</li>
+      </ul>
+      <div class="tip">✅ Deliverable: Upload PDF → chunks stored in ChromaDB. Query ChromaDB → get relevant chunks back. All via Python + HTTP.</div>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-left">
+      <div class="phase-num" style="background:#FAEEDA;color:#633806;">2</div>
+      <span class="week-badge" style="background:#FAEEDA;color:#633806;">Week 1–2</span>
+    </div>
+    <div class="phase-body card" style="margin:0;">
+      <p class="phase-title">LangGraph agent graph</p>
+      <p class="phase-sub">The brain — build and test all 4 agents with the retry loop</p>
+      <ul class="task-list">
+        <li>Define <code>SearchState</code> TypedDict (question, documents, generation, confidence, retry_count)</li>
+        <li>Implement <strong>QueryAnalyser</strong> node: LLM classifies intent + rewrites query for semantic search</li>
+        <li>Implement <strong>Retriever</strong> node: calls Vector Service <code>/query</code> via async <code>httpx</code>, returns top-5 chunks with scores</li>
+        <li>Implement <strong>Synthesiser</strong> node: LLM generates grounded answer from chunks, cites sources</li>
+        <li>Implement <strong>Critic</strong> node: LLM scores answer (relevance + groundedness + completeness), returns 0–1</li>
+        <li>Wire conditional edge: if <code>confidence &lt; 0.7</code> and <code>retry_count &lt; 3</code> → back to Retriever; else → END</li>
+        <li>Test graph with 10 questions — verify retry loop fires on bad retrievals</li>
+      </ul>
+      <div class="tip">✅ Deliverable: Ask "What is X?" → agents loop → final confident answer with source citations.</div>
+      <button class="btn" onclick="sendPrompt('Write the full LangGraph agent graph code for SmartSearch with all 4 agent nodes: QueryAnalyser, Retriever, Synthesiser and Critic. Include the conditional edge logic and retry loop.')">Get agent code ↗</button>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-left">
+      <div class="phase-num" style="background:#E1F5EE;color:#085041;">3</div>
+      <span class="week-badge" style="background:#E1F5EE;color:#085041;">Week 2</span>
+    </div>
+    <div class="phase-body card" style="margin:0;">
+      <p class="phase-title">API Gateway + Auth</p>
+      <p class="phase-sub">The public-facing REST API that ties everything together</p>
+      <ul class="task-list">
+        <li>Build FastAPI gateway with 4 endpoints: <code>POST /auth/login</code>, <code>POST /ingest</code>, <code>POST /query</code>, <code>GET /status/{job_id}</code></li>
+        <li>Add JWT middleware: <code>/ingest</code> and <code>/query</code> require Bearer token</li>
+        <li>Gateway calls Ingestion Service or Agent Service internally via REST — it never touches ChromaDB directly</li>
+        <li>Add async background task for ingestion (returns job_id immediately, poll <code>/status</code> for completion)</li>
+        <li>Add Pydantic request/response models for every endpoint</li>
+        <li>Write Pytest tests for all 4 endpoints with mock internal services</li>
+      </ul>
+      <div class="tip">✅ Deliverable: <code>curl -X POST /query -H "Authorization: Bearer ..." -d '{"question":"..."}'</code> → answer JSON.</div>
+      <button class="btn" onclick="sendPrompt('Write the FastAPI gateway code for SmartSearch with /auth/login, /ingest, /query and /status endpoints including JWT middleware and Pydantic models')">Get gateway code ↗</button>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-left">
+      <div class="phase-num" style="background:#E6F1FB;color:#0C447C;">4</div>
+      <span class="week-badge" style="background:#E6F1FB;color:#0C447C;">Week 2–3</span>
+    </div>
+    <div class="phase-body card" style="margin:0;">
+      <p class="phase-title">Docker — containerise everything</p>
+      <p class="phase-sub">Package all 5 services into containers, run via docker-compose</p>
+      <ul class="task-list">
+        <li>Write <code>Dockerfile</code> for each service (multi-stage builds, non-root user, <code>/health</code> endpoint)</li>
+        <li>Write <code>docker-compose.yml</code>: all 5 services + PostgreSQL. Services communicate by service name (e.g. <code>http://vector-service:8001</code>)</li>
+        <li>Add <code>.env</code> file: LLM API key, JWT secret, DB URL — never hardcoded</li>
+        <li>Run <code>docker compose up</code> and test the full pipeline: upload PDF → query → answer</li>
+        <li>Fix any networking issues (common: ChromaDB persistence volume, embedding model download on startup)</li>
+      </ul>
+      <div class="tip">✅ Deliverable: <code>docker compose up</code> boots everything. Full pipeline works. Share this on GitHub already — it's impressive.</div>
+      <button class="btn" onclick="sendPrompt('Write the Dockerfile for the SmartSearch agent service and the full docker-compose.yml with all 5 services and PostgreSQL')">Get Dockerfiles ↗</button>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-left">
+      <div class="phase-num" style="background:#FAECE7;color:#712B13;">5</div>
+      <span class="week-badge" style="background:#FAECE7;color:#712B13;">Week 3</span>
+    </div>
+    <div class="phase-body card" style="margin:0;">
+      <p class="phase-title">Kubernetes on minikube</p>
+      <p class="phase-sub">Deploy everything to a real local K8s cluster — this is the star skill for your portfolio</p>
+      <ul class="task-list">
+        <li>Point Docker to minikube: <code>eval $(minikube docker-env)</code> — rebuild images inside minikube's daemon</li>
+        <li>Write K8s manifests for each service: <code>Deployment</code> (2 replicas) + <code>Service</code> (ClusterIP) + <code>HorizontalPodAutoscaler</code></li>
+        <li>Write <code>ConfigMap</code> for non-secret config (service URLs, collection names) and <code>Secret</code> for API keys + DB password</li>
+        <li>Enable minikube Ingress addon: <code>minikube addons enable ingress</code> — write <code>ingress.yaml</code> to route <code>/api/*</code> → gateway, <code>/</code> → dashboard</li>
+        <li>Enable Prometheus + Grafana: <code>minikube addons enable metrics-server</code> + deploy kube-prometheus-stack via Helm</li>
+        <li>Add ChromaDB persistent volume: <code>PersistentVolumeClaim</code> so data survives pod restarts</li>
+        <li>Test: <code>kubectl get pods</code> → all Running. <code>minikube service gateway --url</code> → test API from browser</li>
+      </ul>
+      <div class="tip">✅ Deliverable: <code>kubectl apply -f k8s/</code> deploys the entire platform. Every pod healthy. This is your portfolio centrepiece.</div>
+      <button class="btn" onclick="sendPrompt('Write the Kubernetes deployment YAML for SmartSearch — all 5 services with Deployments, Services, ConfigMap, Secrets, HPA and an Ingress manifest')">Get K8s manifests ↗</button>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-left">
+      <div class="phase-num" style="background:#EAF3DE;color:#27500A;">6</div>
+      <span class="week-badge" style="background:#EAF3DE;color:#27500A;">Week 3–4</span>
+    </div>
+    <div class="phase-body card" style="margin:0;">
+      <p class="phase-title">Dashboard + Polish</p>
+      <p class="phase-sub">Make it look impressive and demoable in 30 seconds</p>
+      <ul class="task-list">
+        <li>Build React dashboard: doc upload drag-and-drop, chat interface, answer card with sources + confidence bar, query history</li>
+        <li>Add Grafana dashboard: pods CPU/memory, query latency, agent retry rate, ingestion throughput</li>
+        <li>Write a killer README: architecture diagram (use draw.io or Mermaid), demo GIF, one-command deploy instructions</li>
+        <li>Record 2-min demo video: upload PDF → ask question → show Critic retry loop firing → Grafana dashboard</li>
+        <li>Tag <code>v1.0.0</code> on GitHub. Add portfolio description: "Multi-agent RAG platform — LangGraph + FastAPI microservices on Kubernetes"</li>
+      </ul>
+      <div class="tip">✅ Deliverable: Public GitHub repo that looks production-grade. This is what you email alongside your resume.</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- CODE -->
+<div id="pane-code" class="pane">
+  <div class="sh">Starter Code Snippets</div>
+
+  <div class="sh2" style="margin-top:8px;">1. Vector Service — ChromaDB REST wrapper</div>
+  <pre><span class="kw">from</span> fastapi <span class="kw">import</span> FastAPI
+<span class="kw">import</span> chromadb
+
+app = FastAPI()
+client = chromadb.PersistentClient(path=<span class="st">"/data/chroma"</span>)
+
+<span class="kw">@app</span>.post(<span class="st">"/query"</span>)
+<span class="kw">async def</span> <span class="fn">query</span>(collection: str, query: str, top_k: int = <span class="nm">5</span>):
+    col = client.get_collection(collection)
+    results = col.query(query_texts=[query], n_results=top_k)
+    <span class="kw">return</span> {<span class="st">"documents"</span>: results[<span class="st">"documents"</span>][<span class="nm">0</span>],
+            <span class="st">"distances"</span>: results[<span class="st">"distances"</span>][<span class="nm">0</span>]}</pre>
+
+  <div class="sh2" style="margin-top:14px;">2. Critic Agent — confidence scoring</div>
+  <pre><span class="kw">async def</span> <span class="fn">critic_node</span>(state: SearchState) -> SearchState:
+    prompt = <span class="st">f"""Score this answer 0.0–1.0 on 3 axes.
+Question: {state['question']}
+Answer:   {state['generation']}
+Sources:  {state['documents']}
+
+Return JSON: {{"relevance": 0.x, "groundedness": 0.x, "completeness": 0.x}}</span><span class="st">"""</span>
+
+    response = <span class="kw">await</span> llm.ainvoke(prompt)
+    scores = json.loads(response.content)
+    confidence = sum(scores.values()) / <span class="nm">3</span>
+
+    <span class="kw">return</span> {**state, <span class="st">"confidence"</span>: confidence,
+            <span class="st">"retry_count"</span>: state[<span class="st">"retry_count"</span>] + <span class="nm">1</span>}
+
+<span class="cm"># Conditional edge</span>
+<span class="kw">def</span> <span class="fn">should_retry</span>(state: SearchState) -> str:
+    <span class="kw">if</span> state[<span class="st">"confidence"</span>] < <span class="nm">0.7</span> <span class="kw">and</span> state[<span class="st">"retry_count"</span>] < <span class="nm">3</span>:
+        <span class="kw">return</span> <span class="st">"retriever"</span>   <span class="cm"># loop back</span>
+    <span class="kw">return</span> <span class="st">"end"</span>           <span class="cm"># done</span></pre>
+
+  <div class="sh2" style="margin-top:14px;">3. Kubernetes Deployment (agent service)</div>
+  <pre><span class="kw">apiVersion</span>: apps/v1
+<span class="kw">kind</span>: Deployment
+<span class="kw">metadata</span>:
+  <span class="nm">name</span>: agent-service
+<span class="kw">spec</span>:
+  <span class="nm">replicas</span>: 2
+  <span class="nm">selector</span>:
+    <span class="nm">matchLabels</span>: {app: agent-service}
+  <span class="nm">template</span>:
+    <span class="nm">metadata</span>:
+      <span class="nm">labels</span>: {app: agent-service}
+    <span class="nm">spec</span>:
+      <span class="nm">containers</span>:
+      - <span class="nm">name</span>: agent
+        <span class="nm">image</span>: smartsearch/agent:latest
+        <span class="nm">ports</span>: [{containerPort: 8000}]
+        <span class="nm">envFrom</span>:
+        - <span class="nm">configMapRef</span>: {name: smartsearch-config}
+        - <span class="nm">secretRef</span>:   {name: smartsearch-secrets}
+        <span class="nm">livenessProbe</span>:
+          <span class="nm">httpGet</span>: {path: /health, port: 8000}
+          <span class="nm">initialDelaySeconds</span>: 15</pre>
+
+  <button class="btn" onclick="sendPrompt('Write the full LangGraph agent graph code for SmartSearch with all 4 agent nodes: QueryAnalyser, Retriever, Synthesiser and Critic. Include the conditional edge logic and retry loop.')">Full agent graph code ↗</button>
+  <button class="btn" style="margin-left:6px;" onclick="sendPrompt('Write all 5 Kubernetes YAML manifests for SmartSearch: gateway, agent, ingestion, vector, and dashboard services with Deployments, Services, HPA, ConfigMap, Secrets and Ingress')">Full K8s YAML ↗</button>
+</div>
+
+<script>
+function show(name) {
+  document.querySelectorAll('.pane').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('pane-' + name).classList.add('active');
+  event.target.classList.add('active');
+}
+</script>
+</body>
+</html>
