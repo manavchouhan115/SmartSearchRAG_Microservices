@@ -1,0 +1,15 @@
+.venv/
+.env
+__pycache__/
+*.pyc
+.DS_Store
+
+# Data files
+/data/
+agent_state.db*
+/tmp/
+*.pdf
+test_collection/
+
+# Exclude Git mapping from copying into container footprint
+.git/

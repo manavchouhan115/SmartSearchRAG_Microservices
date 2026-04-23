@@ -172,7 +172,8 @@ def build_graph():
     workflow.add_conditional_edges("critic", should_retry, {"retriever": "retriever", "end": END})
     
     # Configure local sqlite persistent checkpointer
-    conn = sqlite3.connect("agent_state.db", check_same_thread=False)
+    os.makedirs("./data", exist_ok=True)
+    conn = sqlite3.connect("./data/agent_state.db", check_same_thread=False)
     saver = SqliteSaver(conn)
     app = workflow.compile(checkpointer=saver)
     return app

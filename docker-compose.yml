@@ -1,0 +1,49 @@
+version: "3.8"
+
+services:
+  vector:
+    build: .
+    container_name: vector-service
+    ports:
+      - "8001:8001"
+    command: ["uvicorn", "services.vector.main:app", "--host", "0.0.0.0", "--port", "8001"]
+    volumes:
+      - chroma_data:/app/data
+
+  ingestion:
+    build: .
+    container_name: ingestion-service
+    ports:
+      - "8002:8002"
+    command: ["uvicorn", "services.ingestion.main:app", "--host", "0.0.0.0", "--port", "8002"]
+    environment:
+      - VECTOR_SERVICE_URL=http://vector:8001
+    env_file: .env
+    volumes:
+      - /tmp:/tmp
+
+  agent:
+    build: .
+    container_name: agent-service
+    ports:
+      - "8003:8003"
+    command: ["uvicorn", "services.agent.server:app", "--host", "0.0.0.0", "--port", "8003"]
+    environment:
+      - VECTOR_SERVICE_URL=http://vector:8001
+    env_file: .env
+    volumes:
+      - chroma_data:/app/data
+
+  gateway:
+    build: .
+    container_name: gateway-service
+    ports:
+      - "8000:8000"
+    command: ["uvicorn", "services.gateway.main:app", "--host", "0.0.0.0", "--port", "8000"]
+    environment:
+      - INGESTION_SERVICE_URL=http://ingestion:8002
+      - AGENT_SERVICE_URL=http://agent:8003
+    env_file: .env
+
+volumes:
+  chroma_data:
