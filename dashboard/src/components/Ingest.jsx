@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { UploadCloud, CheckCircle, Loader2, AlertCircle } from 'lucide-react';
+import { fetchWithAuth } from '../api';
 
 export default function Ingest({ token }) {
   const [file, setFile] = useState(null);
@@ -17,11 +18,8 @@ export default function Ingest({ token }) {
     formData.append('collection_name', 'docker_collection');
 
     try {
-      const res = await fetch('/api/ingest', {
+      const res = await fetchWithAuth('/api/ingest', {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        },
         body: formData
       });
 
@@ -38,9 +36,7 @@ export default function Ingest({ token }) {
     setStatus('processing');
     const interval = setInterval(async () => {
       try {
-        const res = await fetch(`/api/status/${jobId}`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
+        const res = await fetchWithAuth(`/api/status/${jobId}`);
         const data = await res.json();
         
         if (data.status === 'completed') {

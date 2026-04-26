@@ -77,7 +77,40 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
             headers={"WWW-Authenticate": "Bearer"},
         )
     access_token = create_access_token(data={"sub": user["username"]})
-    return {"access_token": access_token, "token_type": "bearer"}
+    refresh_token = create_access_token(
+        data={"sub": user["username"], "type": "refresh_token"}
+    )
+    return {"access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer"}
+
+class RefreshRequest(BaseModel):
+    refresh_token: str
+
+@app.post("/auth/refresh")
+async def refresh_token(request: RefreshRequest):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(request.refresh_token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        token_type: str = payload.get("type")
+        if username is None or token_type != "refresh_token":
+            raise credentials_exception
+    except JWTError:
+        raise credentials_exception
+    
+    # Generate fresh pair
+    user = MOCK_USER_DB.get(username)
+    if not user:
+        raise credentials_exception
+        
+    new_access_token = create_access_token(data={"sub": user["username"]})
+    new_refresh_token = create_access_token(
+        data={"sub": user["username"], "type": "refresh_token"}
+    )
+    return {"access_token": new_access_token, "refresh_token": new_refresh_token, "token_type": "bearer"}
 
 # --- Proxy Mechanics ---
 async def process_ingestion(job_id: str, file_content: bytes, filename: str, collection_name: str):

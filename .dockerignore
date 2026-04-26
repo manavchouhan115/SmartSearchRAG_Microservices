@@ -11,5 +11,8 @@ agent_state.db*
 *.pdf
 test_collection/
 
-# Exclude Git mapping from copying into container footprint
+# Exclude Git mapping
 .git/
+
+# Exclude Dashboard
+dashboard/

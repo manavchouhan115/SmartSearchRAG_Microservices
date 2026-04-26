@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Send, Bot, User, ShieldCheck } from 'lucide-react';
+import { fetchWithAuth } from '../api';
 
 export default function Chat({ token }) {
   const [messages, setMessages] = useState([
@@ -23,11 +24,10 @@ export default function Chat({ token }) {
     setLoading(true);
 
     try {
-      const res = await fetch('/api/query', {
+      const res = await fetchWithAuth('/api/query', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({ question: userMsg, collection_name: 'docker_collection' })
       });

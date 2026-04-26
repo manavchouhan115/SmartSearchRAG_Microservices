@@ -23,7 +23,8 @@ export default function Login({ setToken }) {
       
       if (!res.ok) throw new Error('Invalid credentials');
       const data = await res.json();
-      sessionStorage.setItem('token', data.access_token);
+      localStorage.setItem('access_token', data.access_token);
+      localStorage.setItem('refresh_token', data.refresh_token);
       setToken(data.access_token);
     } catch (err) {
       setError(err.message);
