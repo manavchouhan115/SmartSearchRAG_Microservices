@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agent-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: agent
+  template:
+    metadata:
+      labels:
+        app: agent
+    spec:
+      containers:
+      - name: agent
+        image: smartsearch-agent:latest
+        imagePullPolicy: IfNotPresent
+        command: ["uvicorn", "services.agent.server:app", "--host", "0.0.0.0", "--port", "8003"]
+        ports:
+        - containerPort: 8003
+        envFrom:
+        - configMapRef:
+            name: smartsearch-config
+        - secretRef:
+            name: smartsearch-secrets
+        volumeMounts:
+        - name: chroma-data
+          mountPath: /app/data
+      volumes:
+      - name: chroma-data
+        persistentVolumeClaim:
+          claimName: chroma-data-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: agent-service
+spec:
+  selector:
+    app: agent
+  ports:
+    - protocol: TCP
+      port: 8003
+      targetPort: 8003

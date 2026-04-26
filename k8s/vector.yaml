@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vector-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vector
+  template:
+    metadata:
+      labels:
+        app: vector
+    spec:
+      containers:
+      - name: vector
+        image: smartsearch-vector:latest
+        imagePullPolicy: IfNotPresent
+        command: ["uvicorn", "services.vector.main:app", "--host", "0.0.0.0", "--port", "8001"]
+        ports:
+        - containerPort: 8001
+        volumeMounts:
+        - name: chroma-data
+          mountPath: /app/data
+      volumes:
+      - name: chroma-data
+        persistentVolumeClaim:
+          claimName: chroma-data-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vector-service
+spec:
+  selector:
+    app: vector
+  ports:
+    - protocol: TCP
+      port: 8001
+      targetPort: 8001
