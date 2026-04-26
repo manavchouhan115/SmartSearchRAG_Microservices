@@ -83,20 +83,28 @@ async def ingest_document(
         print("Ensuring collection exists...")
         await get_or_create_collection(collection_name)
         
-        print("Adding to vector DB...")
-        res = await add_to_vector_service(
-            collection_name=collection_name,
-            documents=text_chunks,
-            embeddings=embedded_chunks,
-            metadatas=metadatas,
-            ids=ids
-        )
+        print("Adding to vector DB in batches...")
+        batch_size = 500
+        last_res = None
+        for i in range(0, len(text_chunks), batch_size):
+            batch_docs = text_chunks[i:i+batch_size]
+            batch_embs = embedded_chunks[i:i+batch_size]
+            batch_meta = metadatas[i:i+batch_size]
+            batch_ids = ids[i:i+batch_size]
+            print(f"Uploading batch {i} out of {len(text_chunks)}...")
+            last_res = await add_to_vector_service(
+                collection_name=collection_name,
+                documents=batch_docs,
+                embeddings=batch_embs,
+                metadatas=batch_meta,
+                ids=batch_ids
+            )
         
         return JSONResponse(content={
             "status": "success",
             "message": f"Successfully ingested {file.filename}",
             "chunks_processed": len(text_chunks),
-            "vector_service_response": res
+            "vector_service_response": last_res
         })
 
     except Exception as e:
