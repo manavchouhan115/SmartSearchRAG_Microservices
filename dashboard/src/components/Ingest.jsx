@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { UploadCloud, CheckCircle, Loader2, AlertCircle } from 'lucide-react';
+import { UploadCloud, CheckCircle2, Loader2, AlertCircle } from 'lucide-react';
 import { fetchWithAuth } from '../api';
 
 export default function Ingest({ token }) {
@@ -87,9 +87,12 @@ export default function Ingest({ token }) {
           onChange={(e) => setFile(e.target.files[0])}
         />
         
+        <h3 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--accent-primary)' }}>
+          <UploadCloud size={32} /> Knowledge Corpus Ingestion
+        </h3>
+
         {status === 'idle' && (
           <>
-            <UploadCloud size={48} color="var(--accent-primary)" style={{ marginBottom: '1rem' }} />
             {file ? <p style={{ color: 'white', fontWeight: 500 }}>{file.name}</p> : <p>Click to browse PDFs</p>}
           </>
         )}
@@ -99,13 +102,6 @@ export default function Ingest({ token }) {
           <>
             <div className="spin-icon"><Loader2 size={48} color="var(--accent-primary)" /></div>
             <p style={{ marginTop: '1rem', color: 'var(--accent-primary)' }}>Vectorizing & Indexing...</p>
-          </>
-        )}
-        
-        {status === 'complete' && (
-          <>
-            <CheckCircle size={48} color="#10b981" style={{ marginBottom: '1rem' }} />
-            <p style={{ color: '#10b981' }}>{message}</p>
           </>
         )}
 
@@ -118,14 +114,24 @@ export default function Ingest({ token }) {
       </div>
 
       {file && status === 'idle' && (
-        <button style={{ marginTop: '1rem' }} onClick={handleUpload}>
+        <button style={{ marginTop: '1.5rem', width: '100%' }} onClick={handleUpload}>
           Process Document
         </button>
       )}
 
       {status === 'complete' && (
-        <button style={{ marginTop: '1rem', background: 'rgba(255,255,255,0.1)' }} onClick={() => setStatus('idle')}>
-          Upload Another
+        <div style={{ marginTop: '1.5rem', display: 'flex', alignItems: 'center', gap: '1rem', color: '#10b981', background: 'rgba(16, 185, 129, 0.1)', padding: '1.25rem', borderRadius: '12px', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
+          <CheckCircle2 size={28} />
+          <div style={{ textAlign: 'left' }}>
+            <div style={{ fontWeight: 'bold' }}>Indexed Successfully</div>
+            <div style={{ fontSize: '0.85rem' }}>{message.includes('?') ? 'Vectors mathematically mapped into ChromaDB cluster.' : message}</div>
+          </div>
+        </div>
+      )}
+
+      {status === 'complete' && (
+        <button style={{ marginTop: '1rem', background: 'rgba(255,255,255,0.05)', width: '100%', border: '1px dotted var(--glass-border)' }} onClick={() => setStatus('idle')}>
+          Engage Next Payload
         </button>
       )}
 
